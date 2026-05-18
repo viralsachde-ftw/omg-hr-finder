@@ -390,10 +390,9 @@ def research(company_name: str, known_domain: Optional[str] = None) -> dict:
                 seen_emails.add(e["email"])
                 all_emails.append(e)
 
-    # 1 — Find official domain (skip probe if caller already knows it)
+    # 1 — Find official domain; trust the caller's domain if provided
     if known_domain:
-        resp = _get(known_domain, timeout=6)
-        domain = (resp.url.rstrip("/") if resp and resp.status_code < 400 else None) or probe_domain(clean_name)
+        domain = known_domain.rstrip("/")
     else:
         domain = probe_domain(clean_name)
     result["domain"] = domain
