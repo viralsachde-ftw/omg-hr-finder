@@ -45,8 +45,10 @@ class handler(BaseHTTPRequestHandler):
             self._json({"error": "company name is required"}, 400)
             return
 
+        known_domain = (payload.get("domain") or "").strip() or None
+
         try:
-            data = research(company)
+            data = research(company, known_domain=known_domain)
             self._json(data)
         except Exception as e:
             self._json({"error": str(e)}, 500)

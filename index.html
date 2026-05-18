@@ -31,7 +31,7 @@ body {
 }
 
 /* ── Header ── */
-header { text-align: center; margin-bottom: 2.5rem; }
+header { text-align: center; margin-bottom: 2rem; }
 
 header h1 {
   font-size: 2.4rem;
@@ -45,8 +45,34 @@ header h1 {
 
 header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
 
+/* ── How it works strip ── */
+.how-strip {
+  max-width: 660px; margin: 0 auto 2rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
+}
+.how-step {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.8rem 1rem; text-align: center;
+}
+.how-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.how-title { font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+.how-desc  { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.45; }
+
+/* ── Input hint ── */
+.input-hint {
+  max-width: 660px; margin: 0 auto 0.6rem;
+  display: flex; gap: 0.8rem; flex-wrap: wrap;
+}
+.hint-tag {
+  font-size: 0.73rem; color: var(--muted);
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 5px; padding: 0.2rem 0.6rem; cursor: pointer;
+  transition: all .15s;
+}
+.hint-tag:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ── Search bar ── */
-.search-wrap { max-width: 660px; margin: 0 auto 1.8rem; display: flex; gap: 0.6rem; }
+.search-wrap { max-width: 660px; margin: 0 auto 0.5rem; display: flex; gap: 0.6rem; }
 
 .search-wrap input {
   flex: 1;
@@ -71,6 +97,83 @@ header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
 }
 .search-wrap button:hover  { opacity: .85; }
 .search-wrap button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Normalized preview ── */
+#norm-preview {
+  max-width: 660px; margin: 0 auto 1.4rem;
+  font-size: 0.78rem; color: var(--muted); min-height: 1.1em;
+}
+#norm-preview strong { color: var(--accent); }
+
+/* ── Loading dialog ── */
+#loading-dialog {
+  display: none;
+  max-width: 660px; margin: 0 auto 1.8rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem 1.8rem;
+}
+.loading-title {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 1.1rem;
+}
+.loading-step {
+  display: flex; align-items: flex-start; gap: 0.85rem;
+  padding: 0.55rem 0; border-bottom: 1px solid var(--border);
+  transition: all .3s;
+}
+.loading-step:last-child { border-bottom: none; }
+
+.step-icon {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 0.75rem; font-weight: 700;
+  margin-top: 1px;
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--muted); transition: all .3s;
+}
+.loading-step.active  .step-icon {
+  background: rgba(0,229,255,.12); border-color: var(--accent);
+  color: var(--accent);
+}
+.loading-step.done    .step-icon {
+  background: rgba(0,230,118,.12); border-color: var(--green);
+  color: var(--green);
+}
+.loading-step.done    .step-icon::after { content: '✓'; }
+
+.step-body { flex: 1; }
+.step-label {
+  font-size: 0.88rem; font-weight: 600; color: var(--text);
+  transition: color .3s;
+}
+.loading-step.pending .step-label { color: var(--muted); }
+.loading-step.active  .step-label { color: var(--text); }
+.loading-step.done    .step-label { color: var(--muted); }
+
+.step-detail {
+  font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem;
+  line-height: 1.4; max-height: 0; overflow: hidden; transition: max-height .4s;
+}
+.loading-step.active .step-detail { max-height: 3em; }
+
+/* spinner inside step icon */
+@keyframes spin { to { transform: rotate(360deg); } }
+.step-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid rgba(0,229,255,.3); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+
+/* progress bar */
+.loading-bar-wrap {
+  margin-top: 1.1rem; background: var(--card2);
+  border-radius: 4px; height: 4px; overflow: hidden;
+}
+.loading-bar {
+  height: 4px; border-radius: 4px; width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  transition: width 1.2s ease;
+}
 
 /* ── Status ── */
 #status { max-width: 900px; margin: 0 auto 1.2rem; font-size: 0.84rem; color: var(--muted); min-height: 1.2em; }
@@ -179,15 +282,6 @@ header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
-/* ── Spinner ── */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  display: inline-block; width: 12px; height: 12px;
-  border: 2px solid var(--border); border-top-color: var(--accent);
-  border-radius: 50%; animation: spin .7s linear infinite;
-  vertical-align: middle; margin-right: 0.4rem;
-}
-
 /* ── Toast ── */
 #toast {
   position: fixed; bottom: 1.5rem; right: 1.5rem;
@@ -205,13 +299,55 @@ header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
 
 <header>
   <h1>OMG HR Finder</h1>
-  <p>Company name → HR people, names, LinkedIn profiles &amp; verified emails. No login. No BS.</p>
+  <p>Type a company name or website — get HR contacts, emails &amp; LinkedIn profiles. Free. No login.</p>
 </header>
 
+<!-- Plain-English "how it works" strip -->
+<div class="how-strip">
+  <div class="how-step">
+    <div class="how-icon">🌐</div>
+    <div class="how-title">Finds the website</div>
+    <div class="how-desc">Locates the company's official domain automatically</div>
+  </div>
+  <div class="how-step">
+    <div class="how-icon">👥</div>
+    <div class="how-title">Hunts HR people</div>
+    <div class="how-desc">Searches LinkedIn &amp; job sites for recruiters &amp; HR staff</div>
+  </div>
+  <div class="how-step">
+    <div class="how-icon">📧</div>
+    <div class="how-title">Digs up emails</div>
+    <div class="how-desc">Scans contact &amp; careers pages for real email addresses</div>
+  </div>
+</div>
+
+<!-- Quick-fill examples -->
+<div class="input-hint">
+  <span style="font-size:0.73rem;color:var(--muted);align-self:center;">Try:</span>
+  <span class="hint-tag" onclick="fillHint('Stripe')">Stripe</span>
+  <span class="hint-tag" onclick="fillHint('Infosys')">Infosys</span>
+  <span class="hint-tag" onclick="fillHint('Zepto')">Zepto</span>
+  <span class="hint-tag" onclick="fillHint('stripe.com')">stripe.com</span>
+  <span class="hint-tag" onclick="fillHint('IDX Inc')">IDX Inc</span>
+</div>
+
 <div class="search-wrap">
-  <input id="inp" type="text" placeholder="e.g. Stripe, Infosys, Zepto, OpenAI…"
+  <input id="inp" type="text"
+         placeholder="Company name or website — e.g. IDX, IDX Inc, idx.com, https://idx.com"
          autocomplete="off" spellcheck="false" />
   <button id="btn" onclick="go()">Find HRs</button>
+</div>
+
+<!-- Shows what we normalized the input to -->
+<div id="norm-preview"></div>
+
+<!-- Animated loading dialog -->
+<div id="loading-dialog">
+  <div class="loading-title">What we're doing right now</div>
+  <div id="steps-container"></div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
 </div>
 
 <div id="status"></div>
@@ -219,10 +355,194 @@ header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
 <div id="toast">Copied!</div>
 
 <script>
+// ── Input normalization ──────────────────────────────────────────────────────
+
+const LEGAL_SUFFIXES = /\b(inc\.?|incorporated|llc|l\.l\.c\.?|ltd\.?|limited|corp\.?|corporation|co\.?|pvt\.?|private|plc|gmbh|ag|sa)\b\.?/gi;
+
+const KNOWN_TLDS = /\.(com|io|co|in|ai|net|org|app|dev|xyz|tech|inc|us|uk|ca|au|de|fr|jp|sg|eu|vc|ai|me|cc|biz|info)$/i;
+
+function normalizeInput(raw) {
+  const val = raw.trim();
+  if (!val) return null;
+
+  // Case 1: full URL (http/https)
+  if (/^https?:\/\//i.test(val)) {
+    try {
+      const u = new URL(val);
+      const host = u.hostname.replace(/^www\./, '');
+      const company = host.split('.')[0];
+      return { type: 'website', display: host, company: toTitleCase(company), domain: 'https://' + host };
+    } catch (_) {}
+  }
+
+  // Case 2: looks like a bare domain (e.g. "idx.com", "stripe.io")
+  if (/^[a-z0-9-]+\.[a-z]{2,}$/i.test(val) && KNOWN_TLDS.test(val)) {
+    const company = val.split('.')[0];
+    return { type: 'website', display: val, company: toTitleCase(company), domain: 'https://www.' + val };
+  }
+
+  // Case 3: company name — clean up dots used as separators and strip legal suffixes
+  let name = val
+    .replace(/\./g, ' ')          // "idx.inc" → "idx inc"
+    .replace(LEGAL_SUFFIXES, '')  // strip Inc, LLC, Ltd, Corp...
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!name) name = val.replace(/\./g, ' ').trim(); // fallback if everything stripped
+
+  return { type: 'company', display: name, company: name, domain: null };
+}
+
+function toTitleCase(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+// ── Input preview ────────────────────────────────────────────────────────────
+
 const inp = document.getElementById('inp');
+
+inp.addEventListener('input', () => {
+  const val = inp.value.trim();
+  if (!val) { document.getElementById('norm-preview').innerHTML = ''; return; }
+  const n = normalizeInput(val);
+  if (!n) return;
+  if (n.type === 'website') {
+    document.getElementById('norm-preview').innerHTML =
+      `Website detected — will search for company: <strong>${esc(n.company)}</strong>`;
+  } else if (n.company.toLowerCase() !== val.toLowerCase()) {
+    document.getElementById('norm-preview').innerHTML =
+      `Will search as: <strong>${esc(n.company)}</strong>`;
+  } else {
+    document.getElementById('norm-preview').innerHTML = '';
+  }
+});
+
 inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
 
+function fillHint(text) {
+  inp.value = text;
+  inp.dispatchEvent(new Event('input'));
+  inp.focus();
+}
+
+// ── Loading dialog ───────────────────────────────────────────────────────────
+
+const STEPS = [
+  {
+    label: 'Looking up the official website',
+    detail: 'We try common domain patterns like company.com, company.io, etc. to find their real website.',
+    durationMs: 4000,
+    icon: '🌐',
+  },
+  {
+    label: 'Searching LinkedIn for HR & recruiting staff',
+    detail: 'We ask DuckDuckGo to find LinkedIn profiles of recruiters, HR managers, and talent leads at this company — no LinkedIn login needed.',
+    durationMs: 10000,
+    icon: '👥',
+  },
+  {
+    label: 'Reading job boards & contact pages',
+    detail: 'Scanning public pages that might mention HR emails — careers pages, "contact us" pages, job postings, and more.',
+    durationMs: 9000,
+    icon: '📋',
+  },
+  {
+    label: 'Harvesting email addresses',
+    detail: 'Pulling any email addresses found in the text, then labelling HR-specific ones (like hr@, recruiting@, talent@).',
+    durationMs: 5000,
+    icon: '📧',
+  },
+  {
+    label: 'Wrapping it all up',
+    detail: 'Deduplicating results, sorting HR emails to the top, and preparing your report.',
+    durationMs: 3000,
+    icon: '✅',
+  },
+];
+
+let loadingTimers = [];
+
+function startLoading(companyName) {
+  clearLoadingTimers();
+
+  const dialog = document.getElementById('loading-dialog');
+  const container = document.getElementById('steps-container');
+  const bar = document.getElementById('loading-bar');
+
+  // Build step HTML
+  container.innerHTML = STEPS.map((s, i) => `
+    <div class="loading-step pending" id="lstep-${i}">
+      <div class="step-icon" id="lstep-icon-${i}">${i + 1}</div>
+      <div class="step-body">
+        <div class="step-label">${s.icon} ${esc(s.label)}</div>
+        <div class="step-detail">${esc(s.detail)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  bar.style.width = '0%';
+  dialog.style.display = 'block';
+
+  // Animate steps
+  let elapsed = 0;
+  const totalMs = STEPS.reduce((sum, s) => sum + s.durationMs, 0);
+
+  STEPS.forEach((step, i) => {
+    const startT = loadingTimers.length === 0 ? 0 : elapsed;
+    elapsed += step.durationMs;
+    const endT = elapsed;
+
+    loadingTimers.push(setTimeout(() => {
+      // Mark previous as done
+      if (i > 0) markStepDone(i - 1);
+      // Mark current as active
+      markStepActive(i, companyName, step);
+      // Update progress bar
+      bar.style.width = Math.round((endT / totalMs) * 85) + '%';
+    }, startT));
+  });
+}
+
+function markStepActive(i, companyName, step) {
+  const el = document.getElementById(`lstep-${i}`);
+  const icon = document.getElementById(`lstep-icon-${i}`);
+  if (!el) return;
+  el.className = 'loading-step active';
+  icon.innerHTML = '<span class="step-spinner"></span>';
+}
+
+function markStepDone(i) {
+  const el = document.getElementById(`lstep-${i}`);
+  const icon = document.getElementById(`lstep-icon-${i}`);
+  if (!el) return;
+  el.className = 'loading-step done';
+  icon.textContent = '';
+}
+
+function finishLoading() {
+  clearLoadingTimers();
+  STEPS.forEach((_, i) => markStepDone(i));
+  document.getElementById('loading-bar').style.width = '100%';
+  setTimeout(() => {
+    document.getElementById('loading-dialog').style.display = 'none';
+  }, 800);
+}
+
+function hideLoading() {
+  clearLoadingTimers();
+  document.getElementById('loading-dialog').style.display = 'none';
+}
+
+function clearLoadingTimers() {
+  loadingTimers.forEach(clearTimeout);
+  loadingTimers = [];
+}
+
+// ── Status helper ────────────────────────────────────────────────────────────
+
 function setStatus(html) { document.getElementById('status').innerHTML = html; }
+
+// ── Toast ────────────────────────────────────────────────────────────────────
 
 function toast() {
   const t = document.getElementById('toast');
@@ -239,7 +559,7 @@ function copy(text, btn) {
   });
 }
 
-// ── Render helpers ──────────────────────────────────────────────────────────
+// ── Render helpers ───────────────────────────────────────────────────────────
 
 function personCard(p) {
   const li = p.linkedin
@@ -288,7 +608,7 @@ function esc(str) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Main render ─────────────────────────────────────────────────────────────
+// ── Main render ──────────────────────────────────────────────────────────────
 
 function render(data) {
   const people   = data.hr_people    || [];
@@ -365,23 +685,35 @@ function render(data) {
   `;
 }
 
-// ── Search ──────────────────────────────────────────────────────────────────
+// ── Search ───────────────────────────────────────────────────────────────────
 
 async function go() {
-  const company = inp.value.trim();
-  if (!company) { inp.focus(); return; }
+  const raw = inp.value.trim();
+  if (!raw) { inp.focus(); return; }
+
+  const normalized = normalizeInput(raw);
+  if (!normalized) { inp.focus(); return; }
+
+  const { company, domain } = normalized;
 
   const btn = document.getElementById('btn');
   btn.disabled = true;
   document.getElementById('results').style.display = 'none';
-  setStatus(`<span class="spinner"></span>Scanning the web for <strong>${esc(company)}</strong>… (may take 15–30 s)`);
+  setStatus('');
+
+  startLoading(company);
+
+  const payload = { company };
+  if (domain) payload.domain = domain;
 
   try {
     const resp = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ company }),
+      body: JSON.stringify(payload),
     });
+
+    finishLoading();
 
     if (!resp.ok) throw new Error('Server error ' + resp.status);
     const data = await resp.json();
@@ -398,6 +730,7 @@ async function go() {
       render(data);
     }
   } catch (err) {
+    hideLoading();
     setStatus(`<span style="color:var(--red)">Failed: ${esc(err.message)}</span>`);
   } finally {
     btn.disabled = false;

@@ -16,6 +16,12 @@ HEADERS = {
 
 EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", re.I)
 
+LEGAL_SUFFIX_RE = re.compile(
+    r"\b(inc\.?|incorporated|llc|l\.l\.c\.?|ltd\.?|limited|corp\.?|corporation|"
+    r"co\.?|pvt\.?|private|plc|gmbh|ag|sa)\b\.?",
+    re.I,
+)
+
 HR_LOCAL_RE = re.compile(
     r"^(hr|human[._-]?resources?|recruit\w*|hiring|talent|career|careers|"
     r"jobs?|people|staffing|employ\w*|personnel|workforce|hrd|hrbp|hrm|"
@@ -187,11 +193,24 @@ def scrape_page(url: str, timeout: int = 8) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Company name normalisation
+# ---------------------------------------------------------------------------
+
+def normalize_company_name(raw: str) -> str:
+    """Strip legal suffixes and tidy whitespace. 'IDX Inc.' → 'IDX'"""
+    name = re.sub(r"\.", " ", raw)           # dots → spaces: "idx.inc" → "idx inc"
+    name = LEGAL_SUFFIX_RE.sub("", name)
+    name = re.sub(r"\s+", " ", name).strip()
+    return name if name else raw.strip()
+
+
+# ---------------------------------------------------------------------------
 # Domain probe
 # ---------------------------------------------------------------------------
 
 def probe_domain(company_name: str) -> Optional[str]:
-    slug = re.sub(r"[^a-z0-9]", "", company_name.lower())
+    clean = normalize_company_name(company_name)
+    slug = re.sub(r"[^a-z0-9]", "", clean.lower())
     candidates = [
         f"https://www.{slug}.com",
         f"https://{slug}.com",
@@ -350,9 +369,11 @@ def find_team_page_people(domain: str) -> list[dict]:
 # Main research entry point
 # ---------------------------------------------------------------------------
 
-def research(company_name: str) -> dict:
+def research(company_name: str, known_domain: Optional[str] = None) -> dict:
+    clean_name = normalize_company_name(company_name)
+
     result: dict = {
-        "company": company_name,
+        "company": clean_name,
         "domain": None,
         "hr_people": [],
         "hr_emails": [],
@@ -369,12 +390,16 @@ def research(company_name: str) -> dict:
                 seen_emails.add(e["email"])
                 all_emails.append(e)
 
-    # 1 — Find official domain
-    domain = probe_domain(company_name)
+    # 1 — Find official domain (skip probe if caller already knows it)
+    if known_domain:
+        resp = _get(known_domain, timeout=6)
+        domain = (resp.url.rstrip("/") if resp and resp.status_code < 400 else None) or probe_domain(clean_name)
+    else:
+        domain = probe_domain(clean_name)
     result["domain"] = domain
 
     # 2 — LinkedIn HR people
-    linkedin_people = find_linkedin_hr_people(company_name)
+    linkedin_people = find_linkedin_hr_people(clean_name)
     result["hr_people"].extend(linkedin_people)
 
     # 3 — Team page HR people (if domain found)
@@ -388,8 +413,8 @@ def research(company_name: str) -> dict:
 
     # 4 — Email searches via DDG
     queries = [
-        f'"{company_name}" HR email contact',
-        f'"{company_name}" careers hiring email',
+        f'"{clean_name}" HR email contact',
+        f'"{clean_name}" careers hiring email',
     ]
     if domain:
         host = re.sub(r"https?://", "", domain).split("/")[0]
