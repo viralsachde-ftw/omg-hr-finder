@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/search.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/api/search", "dest": "/api/search.py" },
-    { "src": "/(.*)",       "dest": "/index.html" }
+  "functions": {
+    "api/search.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/search", "destination": "/api/search.py" }
   ]
 }
