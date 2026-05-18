@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/search.py": {
-      "runtime": "python3.9"
-    }
-  },
   "rewrites": [
     { "source": "/api/search", "destination": "/api/search.py" }
   ]
