@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMG HR Finder</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0b0d10;
+  --card:    #111418;
+  --card2:   #161b22;
+  --border:  #21262d;
+  --accent:  #00e5ff;
+  --purple:  #7c3aed;
+  --green:   #00e676;
+  --red:     #ff1744;
+  --yellow:  #ffd600;
+  --text:    #e2e8f0;
+  --muted:   #58677a;
+  --mono:    'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 2.5rem 1rem 4rem;
+}
+
+/* ── Header ── */
+header { text-align: center; margin-bottom: 2.5rem; }
+
+header h1 {
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  background: linear-gradient(130deg, var(--accent) 0%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.88rem; }
+
+/* ── Search bar ── */
+.search-wrap { max-width: 660px; margin: 0 auto 1.8rem; display: flex; gap: 0.6rem; }
+
+.search-wrap input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.9rem 1.2rem;
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-wrap input::placeholder { color: var(--muted); }
+.search-wrap input:focus { border-color: var(--accent); }
+
+.search-wrap button {
+  background: linear-gradient(130deg, var(--accent), var(--purple));
+  border: none; border-radius: 9px;
+  padding: 0.9rem 1.8rem;
+  color: #000; font-weight: 800; font-size: 0.95rem;
+  cursor: pointer; white-space: nowrap; transition: opacity .2s;
+}
+.search-wrap button:hover  { opacity: .85; }
+.search-wrap button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Status ── */
+#status { max-width: 900px; margin: 0 auto 1.2rem; font-size: 0.84rem; color: var(--muted); min-height: 1.2em; }
+
+/* ── Results container ── */
+#results { max-width: 900px; margin: 0 auto; display: none; }
+
+/* ── Company header card ── */
+.company-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.4rem;
+}
+.company-name { font-size: 1.4rem; font-weight: 800; }
+.domain-link { color: var(--accent); font-size: 0.88rem; text-decoration: none; }
+.domain-link:hover { text-decoration: underline; }
+.domain-none { color: var(--muted); font-size: 0.84rem; font-style: italic; }
+
+/* ── Stats strip ── */
+.stats { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+.stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.8rem 1.3rem;
+}
+.stat-num { font-size: 1.7rem; font-weight: 900; display: block; line-height: 1; }
+.stat-num.g { color: var(--green); }
+.stat-num.c { color: var(--accent); }
+.stat-num.m { color: var(--muted); }
+.stat-label { color: var(--muted); font-size: 0.73rem; margin-top: 0.2rem; }
+
+/* ── Section ── */
+.section { margin-bottom: 1.8rem; }
+.section-head {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 0.9rem;
+}
+
+/* ── People grid ── */
+.people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.7rem; }
+
+.person-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple);
+  border-radius: 10px;
+  padding: 0.95rem 1.1rem;
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+.person-name { font-weight: 700; font-size: 0.97rem; }
+.person-role { font-size: 0.8rem; color: var(--accent); }
+.person-source { font-size: 0.72rem; color: var(--muted); }
+
+.person-actions { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
+.li-btn {
+  font-size: 0.72rem; padding: 0.25rem 0.6rem;
+  border: 1px solid var(--purple); border-radius: 5px;
+  color: var(--purple); text-decoration: none;
+  transition: all .15s;
+}
+.li-btn:hover { background: var(--purple); color: #fff; }
+
+/* ── Email list ── */
+.email-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.email-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 1.1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+}
+.email-row.hr { border-left: 3px solid var(--green); }
+
+.email-addr { font-family: var(--mono); font-size: 0.9rem; word-break: break-all; }
+
+.row-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+.badge {
+  font-size: 0.67rem; font-weight: 700; letter-spacing: .08em;
+  padding: 0.18rem 0.52rem; border-radius: 4px; white-space: nowrap;
+}
+.badge-hr    { background: rgba(0,230,118,.14); color: var(--green); }
+.badge-other { background: rgba(88,103,122,.14); color: var(--muted); }
+
+.copy-btn {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 5px; padding: 0.22rem 0.55rem;
+  color: var(--muted); font-size: 0.73rem;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Sources ── */
+.sources-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.source-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.8rem 1.1rem;
+}
+.source-title { font-size: 0.87rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.source-url   { font-size: 0.73rem; color: var(--accent); word-break: break-all; margin: 0.2rem 0; }
+.source-snip  {
+  font-size: 0.76rem; color: var(--muted); line-height: 1.5; margin-top: 0.3rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ── Spinner ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+  vertical-align: middle; margin-right: 0.4rem;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  background: var(--green); color: #000; font-weight: 700; font-size: 0.85rem;
+  padding: 0.6rem 1.1rem; border-radius: 7px;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#toast.show { opacity: 1; }
+
+/* ── Empty ── */
+.empty { color: var(--muted); font-size: 0.83rem; font-style: italic; padding: 0.3rem 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>OMG HR Finder</h1>
+  <p>Company name → HR people, names, LinkedIn profiles &amp; verified emails. No login. No BS.</p>
+</header>
+
+<div class="search-wrap">
+  <input id="inp" type="text" placeholder="e.g. Stripe, Infosys, Zepto, OpenAI…"
+         autocomplete="off" spellcheck="false" />
+  <button id="btn" onclick="go()">Find HRs</button>
+</div>
+
+<div id="status"></div>
+<div id="results"></div>
+<div id="toast">Copied!</div>
+
+<script>
+const inp = document.getElementById('inp');
+inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+
+function setStatus(html) { document.getElementById('status').innerHTML = html; }
+
+function toast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+function copy(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    toast();
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+
+// ── Render helpers ──────────────────────────────────────────────────────────
+
+function personCard(p) {
+  const li = p.linkedin
+    ? `<a class="li-btn" href="${esc(p.linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>`
+    : '';
+  return `
+    <div class="person-card">
+      <div class="person-name">${esc(p.name)}</div>
+      <div class="person-role">${esc(p.role || 'HR / Recruiting')}</div>
+      <div class="person-source">via ${esc(p.source)}</div>
+      ${li ? `<div class="person-actions">${li}</div>` : ''}
+    </div>`;
+}
+
+function emailRow(email, isHr) {
+  const cls   = isHr ? 'email-row hr' : 'email-row';
+  const badge = isHr
+    ? '<span class="badge badge-hr">HR</span>'
+    : '<span class="badge badge-other">other</span>';
+  return `
+    <div class="${cls}">
+      <span class="email-addr">${esc(email)}</span>
+      <div class="row-right">
+        ${badge}
+        <button class="copy-btn" onclick="copy('${email}', this)">Copy</button>
+      </div>
+    </div>`;
+}
+
+function sourceCard(s) {
+  return `
+    <div class="source-card">
+      <div class="source-title">${esc(s.title)}</div>
+      <div class="source-url">
+        <a href="${esc(s.url)}" target="_blank" rel="noopener" style="color:inherit">
+          ${esc(s.url.slice(0, 90))}${s.url.length > 90 ? '…' : ''}
+        </a>
+      </div>
+      <div class="source-snip">${esc(s.snippet)}</div>
+    </div>`;
+}
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Main render ─────────────────────────────────────────────────────────────
+
+function render(data) {
+  const people   = data.hr_people    || [];
+  const hrEmails = data.hr_emails    || [];
+  const other    = data.other_emails || [];
+  const sources  = data.sources      || [];
+
+  const domainHtml = data.domain
+    ? `<a class="domain-link" href="${esc(data.domain)}" target="_blank" rel="noopener">${esc(data.domain)}</a>`
+    : `<span class="domain-none">domain not detected</span>`;
+
+  const peopleHtml = people.length
+    ? people.map(personCard).join('')
+    : '<p class="empty">No HR profiles found via public search.</p>';
+
+  const hrEmailHtml = hrEmails.length
+    ? hrEmails.map(e => emailRow(e, true)).join('')
+    : '<p class="empty">No dedicated HR emails found.</p>';
+
+  const otherEmailHtml = other.length
+    ? other.slice(0, 20).map(e => emailRow(e, false)).join('')
+    : '<p class="empty">No other emails found.</p>';
+
+  const sourcesHtml = sources.length
+    ? sources.map(sourceCard).join('')
+    : '<p class="empty">No web sources scraped.</p>';
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').innerHTML = `
+
+    <div class="company-card">
+      <span class="company-name">${esc(data.company)}</span>
+      ${domainHtml}
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num g">${people.length}</span>
+        <span class="stat-label">HR People Found</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num g">${hrEmails.length}</span>
+        <span class="stat-label">HR Emails</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num c">${other.length}</span>
+        <span class="stat-label">Other Emails</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num m">${sources.length}</span>
+        <span class="stat-label">Pages Scraped</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">HR People &amp; Recruiters</div>
+      <div class="people-grid">${peopleHtml}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">HR / Recruiting Emails</div>
+      <div class="email-list">${hrEmailHtml}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Other Emails Found</div>
+      <div class="email-list">${otherEmailHtml}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">Web Sources Scraped</div>
+      <div class="sources-list">${sourcesHtml}</div>
+    </div>
+  `;
+}
+
+// ── Search ──────────────────────────────────────────────────────────────────
+
+async function go() {
+  const company = inp.value.trim();
+  if (!company) { inp.focus(); return; }
+
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('results').style.display = 'none';
+  setStatus(`<span class="spinner"></span>Scanning the web for <strong>${esc(company)}</strong>… (may take 15–30 s)`);
+
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company }),
+    });
+
+    if (!resp.ok) throw new Error('Server error ' + resp.status);
+    const data = await resp.json();
+
+    if (data.error) {
+      setStatus(`<span style="color:var(--red)">Error: ${esc(data.error)}</span>`);
+    } else {
+      const total = (data.hr_emails || []).length + (data.other_emails || []).length;
+      setStatus(
+        `Found <strong>${(data.hr_people||[]).length}</strong> HR people · ` +
+        `<strong>${total}</strong> emails · ` +
+        `<strong>${(data.sources||[]).length}</strong> pages scraped.`
+      );
+      render(data);
+    }
+  } catch (err) {
+    setStatus(`<span style="color:var(--red)">Failed: ${esc(err.message)}</span>`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
