@@ -34,6 +34,12 @@ JUNK_DOMAINS = {
     "sentry.io", "wixpress.com", "schema.org", "w3.org", "amazonaws.com",
     "cloudfront.net", "googleapis.com", "github.com", "npmjs.com",
     "gravatar.com", "wordpress.com", "jquery.com",
+    # search-engine noise
+    "duckduckgo.com", "google.com", "bing.com", "yahoo.com",
+    # domain parking / registrar pages
+    "domains.atom.com", "godaddy.com", "namecheap.com", "dan.com",
+    "hugedomains.com", "sedo.com", "afternic.com", "undeveloped.com",
+    "parkingcrew.net", "bodis.com", "above.com",
 }
 
 HR_TITLE_RE = re.compile(
@@ -47,6 +53,13 @@ HR_TITLE_RE = re.compile(
 )
 
 
+PARKING_HOSTS = {
+    "domains.atom.com", "godaddy.com", "namecheap.com", "dan.com",
+    "hugedomains.com", "sedo.com", "afternic.com", "parkingcrew.net",
+    "bodis.com", "above.com", "undeveloped.com",
+}
+
+
 # ---------------------------------------------------------------------------
 # HTTP helper
 # ---------------------------------------------------------------------------
@@ -57,6 +70,16 @@ def _get(url: str, timeout: int = 8, **kw) -> Optional[requests.Response]:
                             allow_redirects=True, **kw)
     except Exception:
         return None
+
+
+def _is_real_site(resolved_url: str) -> bool:
+    """Return False if the URL resolved to a domain-parking / registrar page."""
+    try:
+        from urllib.parse import urlparse
+        host = urlparse(resolved_url).netloc.lower().lstrip("www.")
+        return not any(host == p or host.endswith("." + p) for p in PARKING_HOSTS)
+    except Exception:
+        return True
 
 
 # ---------------------------------------------------------------------------
@@ -390,9 +413,13 @@ def research(company_name: str, known_domain: Optional[str] = None) -> dict:
                 seen_emails.add(e["email"])
                 all_emails.append(e)
 
-    # 1 — Find official domain; trust the caller's domain if provided
+    # 1 — Find official domain
     if known_domain:
-        domain = known_domain.rstrip("/")
+        resp = _get(known_domain.rstrip("/"), timeout=6)
+        if resp and resp.status_code < 400 and _is_real_site(resp.url):
+            domain = known_domain.rstrip("/")   # trust user's URL as-is
+        else:
+            domain = probe_domain(clean_name)   # provided URL dead/parked → probe by name
     else:
         domain = probe_domain(clean_name)
     result["domain"] = domain

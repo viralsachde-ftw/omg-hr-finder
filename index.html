@@ -370,15 +370,25 @@ function normalizeInput(raw) {
     try {
       const u = new URL(val);
       const host = u.hostname.replace(/^www\./, '');
-      const company = host.split('.')[0];
-      return { type: 'website', display: host, company: toTitleCase(company), domain: 'https://' + host };
+      const slug  = host.split('.')[0];
+      return {
+        type: 'website',
+        display: host,
+        company: slugToName(slug),
+        domain: u.origin,   // preserves www + scheme, no trailing path
+      };
     } catch (_) {}
   }
 
-  // Case 2: looks like a bare domain (e.g. "idx.com", "stripe.io")
+  // Case 2: looks like a bare domain (e.g. "idx.com", "idx.inc", "stripe.io")
   if (/^[a-z0-9-]+\.[a-z]{2,}$/i.test(val) && KNOWN_TLDS.test(val)) {
-    const company = val.split('.')[0];
-    return { type: 'website', display: val, company: toTitleCase(company), domain: 'https://www.' + val };
+    const slug = val.split('.')[0];
+    return {
+      type: 'website',
+      display: val,
+      company: slugToName(slug),
+      domain: 'https://www.' + val,
+    };
   }
 
   // Case 3: company name — clean up dots used as separators and strip legal suffixes
@@ -391,6 +401,12 @@ function normalizeInput(raw) {
   if (!name) name = val.replace(/\./g, ' ').trim(); // fallback if everything stripped
 
   return { type: 'company', display: name, company: name, domain: null };
+}
+
+function slugToName(slug) {
+  // Short slugs (≤4 chars) are likely acronyms: idx → IDX, ibm → IBM
+  if (slug.length <= 4) return slug.toUpperCase();
+  return slug.charAt(0).toUpperCase() + slug.slice(1).toLowerCase();
 }
 
 function toTitleCase(s) {
